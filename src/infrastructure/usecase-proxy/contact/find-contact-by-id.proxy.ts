@@ -3,7 +3,7 @@ import { FindContactByIdUseCase } from '../../../application/usecase/contact/fin
 import { IContactService } from '../../../domain/service/contact/contact-service.interface';
 import { IHttpExceptionService } from '../../../domain/exception/http-exception.interface';
 import { ILoggerService } from '../../../domain/logger/logger-service.interface';
-import { ContactService } from '../../service/contact.service';
+import { GrpcContactService } from '../../service/grpc/grpc-contact.service';
 import { HttpExceptionService } from '../../http-exception/http-exception.service';
 import { LoggerService } from '../../logger/logger.service';
 import { Proxy } from '..';
@@ -17,7 +17,7 @@ const provider: Provider = {
     loggerService: ILoggerService,
   ) =>
     new FindContactByIdUseCase(contactService, exceptionService, loggerService),
-  inject: [ContactService, HttpExceptionService, LoggerService],
+  inject: [GrpcContactService, HttpExceptionService, LoggerService],
 };
 
 export const FindContactByIdProxy = new Proxy(token, provider);

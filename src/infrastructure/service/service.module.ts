@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule } from '@nestjs/microservices';
-import { ContactService } from './contact.service';
-import { grpcConfig } from '../config/grpc/grpc.config';
+import { GrpcContactService } from './grpc/grpc-contact.service';
+import { clientConfig } from '../config/clients/clients.config';
+import { RabbitmqContactService } from './rabbitMQ/rabbitmq-contact.service';
 
 @Module({
-  imports: [ClientsModule.registerAsync(grpcConfig)],
-  providers: [ContactService],
-  exports: [ContactService],
+  imports: [ClientsModule.registerAsync(clientConfig)],
+  providers: [GrpcContactService, RabbitmqContactService],
+  exports: [GrpcContactService, RabbitmqContactService],
 })
 export class ServiceModule {}

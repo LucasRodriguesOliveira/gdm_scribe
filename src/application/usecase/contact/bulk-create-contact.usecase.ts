@@ -3,6 +3,7 @@ import { IContactService } from '../../../domain/service/contact/contact-service
 import { Contact } from '../../../domain/model/contact.model';
 import { IHttpExceptionService } from '../../../domain/exception/http-exception.interface';
 import { ILoggerService } from '../../../domain/logger/logger-service.interface';
+import { UserModel } from '../../../domain/model/user.model';
 
 export class BulkCreateContactUseCase {
   constructor(
@@ -11,8 +12,8 @@ export class BulkCreateContactUseCase {
     private readonly loggerService: ILoggerService,
   ) {}
 
-  public async run(fileStream: ReadStream) {
-    const result = await this.contactService.bulkCreate(fileStream);
+  public async run(fileStream: ReadStream, userId: UserModel['id']) {
+    const result = await this.contactService.bulkCreate(fileStream, userId);
     const contacts: Contact[] = [];
 
     for (const item of result) {

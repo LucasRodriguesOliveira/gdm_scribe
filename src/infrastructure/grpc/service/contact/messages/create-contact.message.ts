@@ -1,6 +1,10 @@
+import { Contact } from '../../../../../domain/model/contact.model';
+import { UserModel } from '../../../../../domain/model/user.model';
+
 export interface CreateContactRequest {
-  id: number;
-  name: string;
-  phone: string;
-  state: string;
+  id: Contact['id'];
+  name: Contact['name'];
+  phone: Contact['phone'];
+  state: Contact['state'];
+  userId: UserModel['id'];
 }

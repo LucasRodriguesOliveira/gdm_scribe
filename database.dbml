@@ -1,0 +1,17 @@
+Project Scribe {
+  database_type: 'PostgreSQL'
+  note: '''
+  # Scribe
+  gdm_scribe
+
+  Scribe database model
+  '''
+}
+
+Table User {
+  id        uuid            [pk]
+  name      varchar   (100) [not null]
+  email     varchar   (150) [not null]
+  password  varchar   (150) [not null]
+  createdAt timestamp       [not null]
+}

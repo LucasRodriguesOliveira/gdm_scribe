@@ -1,4 +1,6 @@
+import { Contact } from '../../model/contact.model';
+
 export interface IContactQuery {
-  name?: string;
-  state?: string;
+  name?: Contact['name'];
+  state?: Contact['state'];
 }

@@ -10,10 +10,16 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FindContactByIdProxy } from '../../../infrastructure/usecase-proxy/contact/find-contact-by-id.proxy';
 import { FindContactByIdUseCase } from '../../../application/usecase/contact/find-contact-by-id.usecase';
 import { ListContactProxy } from '../../../infrastructure/usecase-proxy/contact/list-contact.proxy';
@@ -30,6 +36,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'node:fs';
 import { BulkCreateContactProxy } from '../../../infrastructure/usecase-proxy/contact/bulk-create-contact.proxy';
 import { BulkCreateContactUseCase } from '../../../application/usecase/contact/bulk-create-contact.usecase';
+import { NotifyProxy } from '../../../infrastructure/usecase-proxy/contact/notify.proxy';
+import { NotifyUseCase } from '../../../application/usecase/contact/notify.usecase';
+import { JwtGuard } from '../../../infrastructure/common/guard/jwt.guard';
+import { GetUser } from '../../../infrastructure/common/decorator/get-user.decorator';
+import { UserModel } from '../../../domain/model/user.model';
 
 @Controller('contact')
 @ApiTags('contact')
@@ -43,6 +54,8 @@ export class ContactController {
     private readonly createContactUseCase: CreateContactUseCase,
     @Inject(BulkCreateContactProxy.Token)
     private readonly bulkCreateContactUseCase: BulkCreateContactUseCase,
+    @Inject(NotifyProxy.Token)
+    private readonly notifyUseCase: NotifyUseCase,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -50,11 +63,14 @@ export class ContactController {
   @ApiOkResponse({
     type: [ListContactPresenter],
   })
+  @ApiBearerAuth()
   @UseInterceptors(new PresenterInterceptor(ListContactPresenter))
+  @UseGuards(JwtGuard)
   public async list(
     @Query(ValidationPipe) queryContactDto: QueryContactDto,
+    @GetUser() connectedUser: UserModel,
   ): Promise<Contact[]> {
-    return this.listContactUseCase.run(queryContactDto);
+    return this.listContactUseCase.run(queryContactDto, connectedUser.id);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -62,11 +78,14 @@ export class ContactController {
   @ApiOkResponse({
     type: FindContactByIdPresenter,
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @UseInterceptors(new PresenterInterceptor(FindContactByIdPresenter))
   public async findById(
     @Param('contactId', ParseIntPipe) contactId: number,
+    @GetUser() user: UserModel,
   ): Promise<Contact> {
-    return this.findContactByIdUseCase.run(contactId);
+    return this.findContactByIdUseCase.run(contactId, user.id);
   }
 
   @HttpCode(HttpStatus.CREATED)
@@ -74,19 +93,34 @@ export class ContactController {
   @ApiCreatedResponse({
     type: CreateContactPresenter,
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   @UseInterceptors(new PresenterInterceptor(CreateContactPresenter))
   public async create(
     @Body() createContactDto: Partial<Contact>,
+    @GetUser() user: UserModel,
   ): Promise<Contact> {
-    return this.createContactUseCase.run(createContactDto);
+    return this.createContactUseCase.run(createContactDto, user.id);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('integration')
+  @ApiBearerAuth()
+  @ApiCreatedResponse({
+    type: [Contact],
+  })
   @UseInterceptors(FileInterceptor('file'))
-  public async integration(@UploadedFile() file: Express.Multer.File) {
+  public async integration(
+    @UploadedFile() file: Express.Multer.File,
+    @GetUser() user: UserModel,
+  ) {
     const fileStream = createReadStream(file.path);
 
-    return this.bulkCreateContactUseCase.run(fileStream);
+    return this.bulkCreateContactUseCase.run(fileStream, user.id);
+  }
+
+  @Post('test')
+  public async test() {
+    this.notifyUseCase.run();
   }
 }

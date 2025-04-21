@@ -7,7 +7,7 @@ import { FindContactByIdRequest } from './messages/find-contact-by-id.message';
 import { QueryContactRequest } from './messages/query-contact.message';
 import { IContactResultList } from '../../../../domain/service/contact/contact-result-list.interface';
 
-export interface GrpcContactService {
+export interface IGrpcContactService {
   create(
     req: CreateContactRequest,
   ): Observable<Result<IContactResult, ErrorResponse>>;

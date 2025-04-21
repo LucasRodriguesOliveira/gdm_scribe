@@ -45,6 +45,7 @@ service ContactService {
 
 message FindContactByIdRequest {
   int32 id = 1;
+  string userId = 2;
 }
 
 message CreateContactDtoRequest {
@@ -52,9 +53,11 @@ message CreateContactDtoRequest {
   string name = 2;
   string phone = 3;
   string state = 4;
+  string userId = 5;
 }
 
 message QueryContactRequest {
   string name = 1;
   string state = 2;
+  string userId = 3;
 }
