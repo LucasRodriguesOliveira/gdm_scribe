@@ -1,0 +1,5 @@
+export enum ErrorCode {
+  UNEXPECTED = 'UNEXPECTED',
+  INVALID_DATA = 'INVALID_DATA',
+  NOT_FOUND = 'NOT_FOUND',
+}

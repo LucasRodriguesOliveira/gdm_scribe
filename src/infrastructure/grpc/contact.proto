@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package contact;
+
+message Error {
+  string code = 1;
+  string message = 2;
+}
+
+message Contact {
+  int32 id = 1;
+  string name = 2;
+  string phone = 3;
+  string state = 4;
+}
+
+message ContactResult {
+  Contact contact = 1;
+}
+
+message ContactResponse {
+  oneof response {
+    ContactResult value = 1;
+    Error error = 2;
+  }
+}
+
+message ContactListResult {
+  repeated Contact contacts = 1;
+}
+
+message ContactListResponse {
+  oneof response {
+    ContactListResult value = 1;
+    Error error = 2;
+  }
+}
+
+service ContactService {
+  rpc FindById(FindContactByIdRequest) returns (ContactResponse);
+  rpc Create(CreateContactDtoRequest) returns (ContactResponse);
+  rpc List(QueryContactRequest) returns (ContactListResponse);
+  rpc BulkCreate(stream CreateContactDtoRequest) returns (stream ContactResponse);
+}
+
+message FindContactByIdRequest {
+  int32 id = 1;
+}
+
+message CreateContactDtoRequest {
+  int32 id = 1;
+  string name = 2;
+  string phone = 3;
+  string state = 4;
+}
+
+message QueryContactRequest {
+  string name = 1;
+  string state = 2;
+}
