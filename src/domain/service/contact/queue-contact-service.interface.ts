@@ -1,3 +1,5 @@
+import { IntegrationProgressPayload } from './integration-progress.payload';
+
 export interface IQueueContactService {
-  test();
+  integrationProgress(payload: IntegrationProgressPayload): void;
 }

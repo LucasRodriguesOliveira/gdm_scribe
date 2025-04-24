@@ -13,7 +13,7 @@ export class FindContactByIdUseCase {
   ) {}
 
   public async run(
-    contactId: Contact['id'],
+    contactId: Contact['_id'],
     userId: UserModel['id'],
   ): Promise<Contact> {
     const result = await this.contactService.findById(contactId, userId);

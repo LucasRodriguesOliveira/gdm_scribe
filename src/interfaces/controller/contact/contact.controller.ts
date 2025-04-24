@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Inject,
   Param,
-  ParseIntPipe,
   Post,
   Query,
   UploadedFile,
@@ -29,18 +28,22 @@ import { CreateContactUseCase } from '../../../application/usecase/contact/creat
 import { FindContactByIdPresenter } from './presenter/find-contact-by-id.presenter';
 import { Contact } from '../../../domain/model/contact.model';
 import { PresenterInterceptor } from '../../../infrastructure/common/interceptor/presenter.interceptor';
-import { ListContactPresenter } from './presenter/list-contact.presenter';
+import {
+  ListContactPresenter,
+  ListItemContactPresenter,
+} from './presenter/list-contact.presenter';
 import { QueryContactDto } from './dto/query-contact.dto';
 import { CreateContactPresenter } from './presenter/create-contact.presenter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'node:fs';
 import { BulkCreateContactProxy } from '../../../infrastructure/usecase-proxy/contact/bulk-create-contact.proxy';
 import { BulkCreateContactUseCase } from '../../../application/usecase/contact/bulk-create-contact.usecase';
-import { NotifyProxy } from '../../../infrastructure/usecase-proxy/contact/notify.proxy';
-import { NotifyUseCase } from '../../../application/usecase/contact/notify.usecase';
 import { JwtGuard } from '../../../infrastructure/common/guard/jwt.guard';
 import { GetUser } from '../../../infrastructure/common/decorator/get-user.decorator';
 import { UserModel } from '../../../domain/model/user.model';
+import { IContactResultList } from '../../../domain/service/contact/contact-result-list.interface';
+import { plainToInstance } from 'class-transformer';
+import { CreateContactDto } from './dto/create-contact.dto';
 
 @Controller('contact')
 @ApiTags('contact')
@@ -54,8 +57,6 @@ export class ContactController {
     private readonly createContactUseCase: CreateContactUseCase,
     @Inject(BulkCreateContactProxy.Token)
     private readonly bulkCreateContactUseCase: BulkCreateContactUseCase,
-    @Inject(NotifyProxy.Token)
-    private readonly notifyUseCase: NotifyUseCase,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -69,8 +70,15 @@ export class ContactController {
   public async list(
     @Query(ValidationPipe) queryContactDto: QueryContactDto,
     @GetUser() connectedUser: UserModel,
-  ): Promise<Contact[]> {
-    return this.listContactUseCase.run(queryContactDto, connectedUser.id);
+  ): Promise<IContactResultList> {
+    const result = await this.listContactUseCase.run(
+      queryContactDto,
+      connectedUser.id,
+    );
+
+    result.items = plainToInstance(ListItemContactPresenter, result.items);
+
+    return result;
   }
 
   @HttpCode(HttpStatus.OK)
@@ -82,7 +90,7 @@ export class ContactController {
   @UseGuards(JwtGuard)
   @UseInterceptors(new PresenterInterceptor(FindContactByIdPresenter))
   public async findById(
-    @Param('contactId', ParseIntPipe) contactId: number,
+    @Param('contactId') contactId: string,
     @GetUser() user: UserModel,
   ): Promise<Contact> {
     return this.findContactByIdUseCase.run(contactId, user.id);
@@ -97,9 +105,10 @@ export class ContactController {
   @UseGuards(JwtGuard)
   @UseInterceptors(new PresenterInterceptor(CreateContactPresenter))
   public async create(
-    @Body() createContactDto: Partial<Contact>,
+    @Body(ValidationPipe) createContactDto: CreateContactDto,
     @GetUser() user: UserModel,
   ): Promise<Contact> {
+    console.log(ContactController.name, user);
     return this.createContactUseCase.run(createContactDto, user.id);
   }
 
@@ -117,10 +126,5 @@ export class ContactController {
     const fileStream = createReadStream(file.path);
 
     return this.bulkCreateContactUseCase.run(fileStream, user.id);
-  }
-
-  @Post('test')
-  public async test() {
-    this.notifyUseCase.run();
   }
 }

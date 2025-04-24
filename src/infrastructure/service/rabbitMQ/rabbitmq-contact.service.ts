@@ -3,6 +3,8 @@ import { ClientRMQ } from '@nestjs/microservices';
 import { IQueueContactService } from '../../../domain/service/contact/queue-contact-service.interface';
 import { rmqContactClientToken } from '../../config/rabbitmq/rabbitmq-contact.config';
 import { firstValueFrom } from 'rxjs';
+import { RmqContactPattern } from './rabbitmq-contact-pattern.enum';
+import { IntegrationProgressPayload } from '../../../domain/service/contact/integration-progress.payload';
 
 @Injectable()
 export class RabbitmqContactService
@@ -23,5 +25,12 @@ export class RabbitmqContactService
     );
 
     console.log(result);
+  }
+
+  integrationProgress(payload: IntegrationProgressPayload): void {
+    this.client.emit<string, IntegrationProgressPayload>(
+      RmqContactPattern.INTEGRATION_PROGRESS,
+      payload,
+    );
   }
 }

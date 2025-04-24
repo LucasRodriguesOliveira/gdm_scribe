@@ -3,7 +3,7 @@ import { IContactService } from '../../../domain/service/contact/contact-service
 import { IGrpcContactService } from '../../grpc/service/contact/contact-service.grpc';
 import { grpcContactClientToken } from '../../config/grpc/grpc-contact.config';
 import { ClientGrpc } from '@nestjs/microservices';
-import { GRPCService } from '../grpc-service.enum';
+import { GRPCService } from './grpc-service.enum';
 import { IContactResult } from '../../../domain/service/contact/contact-result.interface';
 import { ErrorResponse } from '../../../domain/types/error.interface';
 import { Result } from '../../../domain/types/result';
@@ -30,8 +30,8 @@ export class GrpcContactService implements OnModuleInit, IContactService {
     );
   }
 
-  findById(
-    contactId: Contact['id'],
+  public async findById(
+    contactId: Contact['_id'],
     userId: UserModel['id'],
   ): Promise<Result<IContactResult, ErrorResponse>> {
     return firstValueFrom(
@@ -39,7 +39,7 @@ export class GrpcContactService implements OnModuleInit, IContactService {
     );
   }
 
-  list(
+  public async list(
     query: IContactQuery,
     userId: UserModel['id'],
   ): Promise<Result<IContactResultList, ErrorResponse>> {
@@ -51,11 +51,19 @@ export class GrpcContactService implements OnModuleInit, IContactService {
     );
   }
 
-  create(data: Contact): Promise<Result<IContactResult, ErrorResponse>> {
-    return firstValueFrom(this.grpcContactService.create(data));
+  public async create(
+    data: Contact,
+    userId: UserModel['id'],
+  ): Promise<Result<IContactResult, ErrorResponse>> {
+    return firstValueFrom(
+      this.grpcContactService.create({
+        ...data,
+        userId,
+      }),
+    );
   }
 
-  async bulkCreate(
+  public async bulkCreate(
     fileStream: ReadStream,
     userId: UserModel['id'],
   ): Promise<Array<Result<IContactResult, ErrorResponse>>> {
@@ -65,14 +73,14 @@ export class GrpcContactService implements OnModuleInit, IContactService {
       trim: true,
     });
 
-    const subject = new ReplaySubject<Contact>();
+    const subject = new ReplaySubject<Omit<Contact, '_id'>>();
     fileStream.pipe(csvParser);
 
     csvParser.on('data', (row: string[]) => {
       const [id, name, phone, state] = row;
 
-      const contactData: Contact = {
-        id: parseInt(id),
+      const contactData: Omit<Contact, '_id'> = {
+        oldid: parseInt(id),
         name,
         phone,
         state,

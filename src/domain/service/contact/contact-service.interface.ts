@@ -13,7 +13,7 @@ export interface IContactService {
     userId: UserModel['id'],
   ): Promise<Result<IContactResult, ErrorResponse>>;
   findById(
-    contactId: Contact['id'],
+    contactId: Contact['_id'],
     userId: UserModel['id'],
   ): Promise<Result<IContactResult, ErrorResponse>>;
   list(

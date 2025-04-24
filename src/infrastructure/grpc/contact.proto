@@ -8,10 +8,11 @@ message Error {
 }
 
 message Contact {
-  int32 id = 1;
-  string name = 2;
-  string phone = 3;
-  string state = 4;
+  string _id = 1;
+  int32 oldid = 2;
+  string name = 3;
+  string phone = 4;
+  string state = 5;
 }
 
 message ContactResult {
@@ -26,7 +27,10 @@ message ContactResponse {
 }
 
 message ContactListResult {
-  repeated Contact contacts = 1;
+  repeated Contact items = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+  int32 total = 4;
 }
 
 message ContactListResponse {
@@ -44,12 +48,12 @@ service ContactService {
 }
 
 message FindContactByIdRequest {
-  int32 id = 1;
+  string id = 1;
   string userId = 2;
 }
 
 message CreateContactDtoRequest {
-  int32 id = 1;
+  int32 oldid = 1;
   string name = 2;
   string phone = 3;
   string state = 4;
@@ -60,4 +64,6 @@ message QueryContactRequest {
   string name = 1;
   string state = 2;
   string userId = 3;
+  int32 page = 4;
+  int32 pageSize = 5;
 }

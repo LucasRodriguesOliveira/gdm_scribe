@@ -1,12 +1,14 @@
 import { IHttpExceptionService } from '../../../domain/exception/http-exception.interface';
 import { ILoggerService } from '../../../domain/logger/logger-service.interface';
-import { Contact } from '../../../domain/model/contact.model';
 import { UserModel } from '../../../domain/model/user.model';
+import { IContactResultList } from '../../../domain/service/contact/contact-result-list.interface';
 import { IContactService } from '../../../domain/service/contact/contact-service.interface';
 
 interface QueryContact {
   name?: string;
   state?: string;
+  page: number;
+  pageSize: number;
 }
 
 export class ListContactUseCase {
@@ -19,7 +21,7 @@ export class ListContactUseCase {
   public async run(
     query: QueryContact,
     userId: UserModel['id'],
-  ): Promise<Contact[]> {
+  ): Promise<IContactResultList> {
     const result = await this.contactService.list(query, userId);
 
     if (result?.error) {
@@ -33,6 +35,6 @@ export class ListContactUseCase {
       });
     }
 
-    return result.value.contacts;
+    return result.value;
   }
 }

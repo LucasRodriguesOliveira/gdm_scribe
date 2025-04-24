@@ -12,7 +12,7 @@ import { createSwaggerDocument } from './infrastructure/config/swagger/swagger.c
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: { origin: '*' } });
   const configService = app.get<ConfigService>(ConfigService);
   const { docs } = configService.get<SwaggerConfig>(SWAGGER_TOKEN.description!);
 

@@ -1,5 +1,8 @@
 import { Contact } from '../../model/contact.model';
 
 export interface IContactResultList {
-  contacts: Contact[];
+  items: Contact[];
+  page: number;
+  pageSize: number;
+  total: number;
 }

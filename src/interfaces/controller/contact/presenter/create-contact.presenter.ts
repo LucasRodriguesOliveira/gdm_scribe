@@ -4,7 +4,7 @@ import { Contact } from '../../../../domain/model/contact.model';
 @Exclude()
 export class CreateContactPresenter extends Contact {
   @Expose()
-  id: number;
+  _id: string;
 
   @Expose()
   name: string;

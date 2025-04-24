@@ -1,5 +1,11 @@
 import { ILoggerService } from '../../../domain/logger/logger-service.interface';
+import { IntegrationProgressPayload } from '../../../domain/service/contact/integration-progress.payload';
 import { IQueueContactService } from '../../../domain/service/contact/queue-contact-service.interface';
+
+interface NotifyLogOptions {
+  should: boolean;
+  message: string;
+}
 
 export class NotifyUseCase {
   constructor(
@@ -7,8 +13,14 @@ export class NotifyUseCase {
     private readonly loggerService: ILoggerService,
   ) {}
 
-  public run() {
-    this.queueContactService.test();
-    this.loggerService.log(NotifyUseCase.name, 'Message sent');
+  integrationProgress(
+    payload: IntegrationProgressPayload,
+    logOptions?: NotifyLogOptions,
+  ): void {
+    this.queueContactService.integrationProgress(payload);
+
+    if (logOptions?.should) {
+      this.loggerService.log(NotifyUseCase.name, logOptions.message);
+    }
   }
 }

@@ -5,4 +5,6 @@ export interface QueryContactRequest {
   name?: Contact['name'];
   state?: Contact['state'];
   userId: UserModel['id'];
+  page: number;
+  pageSize: number;
 }
