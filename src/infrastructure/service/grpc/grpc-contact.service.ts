@@ -7,13 +7,21 @@ import { GRPCService } from './grpc-service.enum';
 import { IContactResult } from '../../../domain/service/contact/contact-result.interface';
 import { ErrorResponse } from '../../../domain/types/error.interface';
 import { Result } from '../../../domain/types/result';
-import { firstValueFrom, lastValueFrom, ReplaySubject, toArray } from 'rxjs';
+import {
+  firstValueFrom,
+  from,
+  lastValueFrom,
+  mergeMap,
+  ReplaySubject,
+  toArray,
+} from 'rxjs';
 import { IContactQuery } from '../../../domain/service/contact/contact-query.interface';
 import { IContactResultList } from '../../../domain/service/contact/contact-result-list.interface';
 import { Contact } from '../../../domain/model/contact.model';
 import { ReadStream } from 'fs';
 import { parse } from 'csv-parse';
 import { UserModel } from '../../../domain/model/user.model';
+import { RabbitmqContactService } from '../rabbitMQ/rabbitmq-contact.service';
 
 @Injectable()
 export class GrpcContactService implements OnModuleInit, IContactService {
@@ -22,6 +30,7 @@ export class GrpcContactService implements OnModuleInit, IContactService {
   constructor(
     @Inject(grpcContactClientToken.description!)
     private readonly clientGrpc: ClientGrpc,
+    private readonly queueContactService: RabbitmqContactService,
   ) {}
 
   onModuleInit() {
@@ -63,6 +72,21 @@ export class GrpcContactService implements OnModuleInit, IContactService {
     );
   }
 
+  private extractRowData(
+    row: string[],
+    userId: UserModel['id'],
+  ): Omit<Contact, '_id'> {
+    const [id, name, phone, state] = row;
+
+    return {
+      oldid: parseInt(id),
+      name,
+      phone,
+      state,
+      userId,
+    };
+  }
+
   public async bulkCreate(
     fileStream: ReadStream,
     userId: UserModel['id'],
@@ -73,35 +97,66 @@ export class GrpcContactService implements OnModuleInit, IContactService {
       trim: true,
     });
 
-    const subject = new ReplaySubject<Omit<Contact, '_id'>>();
     fileStream.pipe(csvParser);
 
-    csvParser.on('data', (row: string[]) => {
-      const [id, name, phone, state] = row;
+    const subjects: ReplaySubject<Omit<Contact, '_id'>>[] = [];
+    let subject = new ReplaySubject<Omit<Contact, '_id'>>();
 
-      const contactData: Omit<Contact, '_id'> = {
-        oldid: parseInt(id),
-        name,
-        phone,
-        state,
-        userId,
-      };
+    let count = 0;
+    const maxItems = 1000;
+
+    csvParser.on('data', (row: string[]) => {
+      const contactData = this.extractRowData(row, userId);
 
       subject.next(contactData);
+      count++;
+
+      if (count >= maxItems) {
+        subject.complete();
+        subjects.push(subject);
+        subject = new ReplaySubject<Omit<Contact, '_id'>>();
+        count = 0;
+      }
     });
 
-    csvParser.on('end', () => {
-      subject.complete();
-    });
+    return new Promise((resolve, reject) => {
+      csvParser.on('end', async () => {
+        if (count > 0) {
+          subject.complete();
+          subjects.push(subject);
+        }
 
-    csvParser.on('error', (err) => {
-      subject.error(err);
-    });
+        try {
+          const results = await lastValueFrom(
+            from(subjects).pipe(
+              mergeMap((subject, index) => {
+                const progress = index / subjects.length;
 
-    return lastValueFrom(
-      this.grpcContactService
-        .bulkCreate(subject.asObservable())
-        .pipe(toArray()),
-    );
+                this.queueContactService.integrationProgress({
+                  progress,
+                  userId,
+                });
+
+                return this.grpcContactService
+                  .bulkCreate(subject.asObservable())
+                  .pipe(toArray());
+              }),
+              toArray(),
+            ),
+          );
+
+          resolve(results.flat());
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      csvParser.on('error', (err) => {
+        subjects.forEach((subject) => {
+          subject.error(err);
+          reject(err);
+        });
+      });
+    });
   }
 }

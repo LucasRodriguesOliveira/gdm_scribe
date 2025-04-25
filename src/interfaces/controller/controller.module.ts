@@ -5,10 +5,16 @@ import { MulterModule } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AuthController } from './auth/auth.controller';
 
+const Kb = 1024;
+const Mb = 1024 * Kb;
+
 @Module({
   imports: [
     UseCaseProxyModule.register(),
-    MulterModule.register({ dest: join(__dirname, '../../upload') }),
+    MulterModule.register({
+      dest: join(__dirname, '../../upload'),
+      limits: { fileSize: 5 * Mb },
+    }),
   ],
   controllers: [ContactController, AuthController],
 })

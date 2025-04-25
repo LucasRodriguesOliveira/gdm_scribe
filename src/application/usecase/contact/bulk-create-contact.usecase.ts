@@ -15,23 +15,15 @@ export class BulkCreateContactUseCase {
   ) {}
 
   public async run(fileStream: ReadStream, userId: UserModel['id']) {
-    const result = await this.contactService.bulkCreate(fileStream, userId);
-    const contacts: Contact[] = [];
-
     this.notifyUseCase.integrationProgress(
       { userId, progress: 0 },
       { should: true, message: 'Starting integration...' },
     );
 
-    let progress = 0.0;
-    let count = 0;
+    const result = await this.contactService.bulkCreate(fileStream, userId);
+    const contacts: Contact[] = [];
 
     for (const item of result) {
-      count++;
-      progress = count / result.length;
-
-      this.notifyUseCase.integrationProgress({ userId, progress });
-
       if (item?.error) {
         this.loggerService.error(
           BulkCreateContactUseCase.name,
@@ -51,7 +43,7 @@ export class BulkCreateContactUseCase {
     }
 
     this.notifyUseCase.integrationProgress(
-      { userId, progress: 100 },
+      { userId, progress: 1 },
       {
         should: true,
         message: `Integration of [${contacts.length}] contacts completed!`,

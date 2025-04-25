@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Query,
   UploadedFile,
@@ -44,6 +45,7 @@ import { UserModel } from '../../../domain/model/user.model';
 import { IContactResultList } from '../../../domain/service/contact/contact-result-list.interface';
 import { plainToInstance } from 'class-transformer';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { Mb } from '../../../infrastructure/common/constants/byte.size';
 
 @Controller('contact')
 @ApiTags('contact')
@@ -118,9 +120,18 @@ export class ContactController {
   @ApiCreatedResponse({
     type: [Contact],
   })
+  @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('file'))
   public async integration(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 5 * Mb })
+        .build({
+          fileIsRequired: true,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
     @GetUser() user: UserModel,
   ) {
     const fileStream = createReadStream(file.path);
