@@ -72,11 +72,10 @@ We're almost there! Now, go to [Hall](https://github.com/LucasRodriguesOliveira/
 **Hall** is a FE project that helps using **Scribe**, can be run locally and it's much simpler, since the only objective is to be a helper
 
 But you can also
- - Download Insomnia json file that contains my own instructions and samples (pretty useful)
- - Ask to participate the Insomnia organization (always up-to-date requests) (also with my samples)
- - Access OpenAPI documentation made with Swagger at `/docs` with **Scribe** project running
-   - Obviously, open in your browser
- - Or challenge the gods by typing at random until you can successfully open the terminal, use curl to make the request, successfully call correctly each route and get the desired behaviour (<del>or write shakespeare</del>)
+ - Download Insomnia json file that contains my own instructions and samples (pretty useful)[^1]
+ - Ask to participate the Insomnia organization (always up-to-date requests) (also with my samples)[^1]
+ - Access OpenAPI documentation made with Swagger at `/docs` with **Scribe** project running [^2]
+ - Or challenge the gods by typing at random until you can successfully open the terminal, use curl to make the request, successfully call correctly each route and get the desired behaviour (<del>or write shakespeare</del>)[^3]
 
 ## Tests
 
@@ -96,3 +95,6 @@ Most details can be found inside the GDM Project Documentation on Eraser
 
 Forge is [MIT licensed](https://github.com/LucasRodriguesOliveira/gdm_scribe/blob/master/LICENSE).
 
+[^1]: Under the condition of direct request
+[^2]: Obviously, open in your browser with the project running
+[^3]: Let me know if you achieved it
