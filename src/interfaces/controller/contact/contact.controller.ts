@@ -110,7 +110,6 @@ export class ContactController {
     @Body(ValidationPipe) createContactDto: CreateContactDto,
     @GetUser() user: UserModel,
   ): Promise<Contact> {
-    console.log(ContactController.name, user);
     return this.createContactUseCase.run(createContactDto, user.id);
   }
 
