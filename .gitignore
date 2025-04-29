@@ -3,6 +3,7 @@
 /node_modules
 /build
 /generated
+__snapshots__
 
 # Logs
 logs

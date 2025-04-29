@@ -2,7 +2,6 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { ClientRMQ } from '@nestjs/microservices';
 import { IQueueContactService } from '../../../domain/service/contact/queue-contact-service.interface';
 import { rmqContactClientToken } from '../../config/rabbitmq/rabbitmq-contact.config';
-import { firstValueFrom } from 'rxjs';
 import { RmqContactPattern } from './rabbitmq-contact-pattern.enum';
 import { IntegrationProgressPayload } from '../../../domain/service/contact/integration-progress.payload';
 
@@ -17,14 +16,6 @@ export class RabbitmqContactService
 
   async onApplicationBootstrap() {
     await this.client.connect();
-  }
-
-  async test() {
-    const result = await firstValueFrom(
-      this.client.send<string>('notification', 'Hello from scribe'),
-    );
-
-    console.log(result);
   }
 
   integrationProgress(payload: IntegrationProgressPayload): void {

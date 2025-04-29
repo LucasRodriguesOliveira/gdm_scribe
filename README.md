@@ -4,7 +4,7 @@ gdm_scribe
 
 GDM Back-end engineer test Project
 
-![Static Badge](https://img.shields.io/badge/Converage-100%25-green)
+![Static Badge](https://img.shields.io/badge/Converage-97%25-green)
 
 ## Description
 
